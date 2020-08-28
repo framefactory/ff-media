@@ -1,0 +1,40 @@
+{
+    "name": "ff-media",
+    "version": "0.1.0",
+    "description": "FF Media Typescript Foundation Library",
+    "scripts": {
+        "build": "tsc -p source",
+        "test": "tsc -p test; mocha -c --ui tdd node_modules/@ff/test/ui/test.js || exit 0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/framefactory/ff-media.git"
+    },
+    "keywords": [
+        "typescript",
+        "midi",
+        "webmidi",
+        "video",
+        "audio",
+        "webaudio"
+    ],
+    "author": {
+        "name": "Ralph Wiedemeier",
+        "url": "https://about.me/ralphw"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/framefactory/ff-media/issues"
+    },
+    "homepage": "https://github.com/framefactory/ff-media#readme",
+    "dependencies": {
+    },
+    "devDependencies": {
+        "@types/chai": "^4.2.12",
+        "@types/mocha": "^8.0.3",
+        "chai": "^4.2.0",
+        "mocha": "^8.1.2",
+        "module-alias": "^2.2.2",
+        "typescript": "^4.0.2"
+    }
+}
