@@ -287,7 +287,7 @@ export default class MIDIMessage
         const b2 = data[2];
 
         if (type === MIDIMessageType.Channel) {
-            const channel = this.channel;
+            const channel = this.channel + 1;
             switch(status) {
                 case MIDIStatus.NoteOn:
                 case MIDIStatus.NoteOff:
