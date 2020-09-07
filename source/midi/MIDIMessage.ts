@@ -244,6 +244,11 @@ export default class MIDIMessage
         return this.data[1];
     }
 
+    get pitch(): number
+    {
+        return this.data[2] * 0x80 + this.data[1] - 0x2000;
+    }
+
     get manufacturerId(): number | number[] | undefined
     {
         const d = this.data;
@@ -302,7 +307,7 @@ export default class MIDIMessage
                 case MIDIStatus.ChannelPressure:
                     return `${name} (Ch. ${channel}, Pressure: ${b1})`;
                 case MIDIStatus.PitchBend:
-                    return `${name} (Ch. ${channel}, Value: ${b2 * 0x80 + b1 - 0x2000 }, LSB: ${b1}, MSB: ${b2})`;
+                    return `${name} (Ch. ${channel}, Value: ${this.pitch}, LSB: ${b1}, MSB: ${b2})`;
                 default:
                     return `${name} (Ch. ${channel}, Values: ${b1}, ${b2})`;
             }
