@@ -17,6 +17,7 @@ import MIDIMessage from "@ff/media/midi/MIDIMessage";
 
 ////////////////////////////////////////////////////////////////////////////////
 
+export { MIDIInput, MIDIOutput, MIDIMessageEvent, MIDIConnectionEvent };
 
 export default class MIDIManager extends Publisher
 {
@@ -31,9 +32,12 @@ export default class MIDIManager extends Publisher
     }
 
     private _midi: MIDIAccess = null;
-    private _activeInputId: string = "";
-    private _activeOutputId: string = "";
+    private _activeInputId = "";
+    private _activeOutputId = "";
 
+    /**
+     * Manages Web Midi ports and connections.
+     */
     constructor()
     {
         super();
@@ -96,6 +100,13 @@ export default class MIDIManager extends Publisher
     get outputNames(): string[] {
         this.ensureInitialized();
         return Array.from(this._midi.outputs, arr => MIDIManager.portName(arr[1]));
+    }
+
+    get hasInputs(): boolean {
+        return this._midi.inputs.size > 0;
+    }
+    get hasOutputs(): boolean {
+        return this._midi.outputs.size > 0;
     }
 
     async initialize(options?: MIDIOptions): Promise<MIDIAccess>
@@ -165,12 +176,12 @@ export default class MIDIManager extends Publisher
         }
 
         if (port) {
-            const oldPort = this.activeInput;
+            const oldPort = this.activeOutput;
             if (oldPort) {
                 oldPort.removeEventListener("statechange", this.onState);
             }
 
-            this._activeInputId = id;
+            this._activeOutputId = id;
             port.addEventListener("statechange", this.onState);
 
             if (localStorage) {

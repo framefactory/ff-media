@@ -35,7 +35,7 @@ export default class MIDIExchange<MIDIDeviceType extends MIDIDevice = MIDIDevice
 
     private _resolve: (result: this) => void = null;
     private _reject: (error: Error) => void = null;
-    private _timeout: number = 5000;
+    private _timeout = 5000;
     private _handle: any = null;
 
     private _exchangeEvents: IExchangeEvent[] = [];
@@ -135,20 +135,20 @@ export default class MIDIExchange<MIDIDeviceType extends MIDIDevice = MIDIDevice
         }, this._timeout);
     }
 
-    protected addExchangeEvent(event: IExchangeEvent)
+    protected addExchangeEvent(event: IExchangeEvent): void
     {
         this._exchangeEvents.push(event);
     }
 
-    protected exchangeWillStart()
+    protected exchangeWillStart(): void
     {
     }
 
-    protected exchangeEventWillStart(event: IExchangeEvent, index: number)
+    protected exchangeEventWillStart(event: IExchangeEvent, index: number): void
     {
     }
 
-    protected exchangeEventDidComplete(event: IExchangeEvent, index: number)
+    protected exchangeEventDidComplete(event: IExchangeEvent, index: number): void
     {
     }
 

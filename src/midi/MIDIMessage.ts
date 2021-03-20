@@ -26,7 +26,7 @@ export default class MIDIMessage
         return new Uint8Array([ MIDIStatus.NoteOn | channel, note, velocity ]);
     }
 
-    static noteOff(channel: number, note: MIDINote, velocity: number = 0): Uint8Array {
+    static noteOff(channel: number, note: MIDINote, velocity = 0): Uint8Array {
         return new Uint8Array([ MIDIStatus.NoteOff | channel, note, velocity ]);
     }
 
@@ -297,17 +297,23 @@ export default class MIDIMessage
                 case MIDIStatus.NoteOn:
                 case MIDIStatus.NoteOff:
                     return `${name} (Ch. ${channel}, Note: ${MIDINote[b1]}, Velocity: ${b2})`;
+
                 case MIDIStatus.KeyPressure:
                     return `${name} (Ch. ${channel}, Note: ${MIDINote[b1]}, Pressure: ${b2})`;
-                case MIDIStatus.ControlChange:
+
+                case MIDIStatus.ControlChange: {
                     const ccType = b1 < 120 ? "ControlChange" : "ChannelMode";
                     return `${ccType} (Ch. ${channel}, Number: ${b1} / ${MIDIController[b1]}, Value: ${b2})`;
+                }
                 case MIDIStatus.ProgramChange:
                     return `${name} (Ch. ${channel}, Number: ${b1})`;
+
                 case MIDIStatus.ChannelPressure:
                     return `${name} (Ch. ${channel}, Pressure: ${b1})`;
+
                 case MIDIStatus.PitchBend:
                     return `${name} (Ch. ${channel}, Value: ${this.pitch}, LSB: ${b1}, MSB: ${b2})`;
+
                 default:
                     return `${name} (Ch. ${channel}, Values: ${b1}, ${b2})`;
             }
@@ -316,10 +322,13 @@ export default class MIDIMessage
             switch(status) {
                 case MIDIStatus.MTCQuarterFrame:
                     return `${name} (type: ${b1 >> 4}, value: ${b1 & 0x0f})`;
+
                 case MIDIStatus.SongPosition:
                     return `${name} (position: ${b2 * 0x80 + b1})`;
+
                 case MIDIStatus.SongSelect:
                     return `${name} (song: ${b1})`;
+                    
                 default:
                     return `${name}`;
             }

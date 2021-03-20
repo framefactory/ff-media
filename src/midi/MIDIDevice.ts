@@ -14,7 +14,7 @@ export { MIDIMessage, MIDIStatus };
 
 export default class MIDIDevice
 {
-    private _deviceId: number = 0;
+    private _deviceId = 0;
     private _manufacturerId: number | number[] = 0;
     private _midiInput: WebMidi.MIDIInput = null;
     private _midiOutput: WebMidi.MIDIOutput = null;
@@ -47,7 +47,7 @@ export default class MIDIDevice
     set deviceId(value: number) {
         this._deviceId = value;
     }
-    get deviceId() {
+    get deviceId(): number {
         return this._deviceId;
     }
 
@@ -67,7 +67,7 @@ export default class MIDIDevice
 
         this.onMidiInputChanged(prev, input);
     }
-    get input() {
+    get input(): WebMidi.MIDIInput {
         return this._midiInput;
     }
 
@@ -77,17 +77,17 @@ export default class MIDIDevice
 
         this.onMidiOutputChanged(prev, output);
     }
-    get output() {
+    get output(): WebMidi.MIDIOutput {
         return this._midiOutput;
     }
 
-    async requestIdentity()
+    async requestIdentity(): Promise<void>
     {
         const data = MIDIMessage.universalNRTSysEx(this._deviceId, 0x06, 0x01);
         this.sendMessage(data);
     }
 
-    sendMessage(data: Uint8Array, time?: number)
+    sendMessage(data: Uint8Array, time?: number): void
     {
         if (this._midiOutput) {
             this._midiOutput.send(data, time);
@@ -103,7 +103,7 @@ export default class MIDIDevice
         return `MIDIDevice, ID: ${this._deviceId}, Input: ${inpName}, Output: ${outName}`;
     }
 
-    protected onMidiMessage(event: WebMidi.MIDIMessageEvent)
+    protected onMidiMessage(event: WebMidi.MIDIMessageEvent): void
     {
         const message = new MIDIMessage(event);
         switch(message.type) {
@@ -116,29 +116,32 @@ export default class MIDIDevice
         }
     }
 
-    protected onMidiChannelMessage(message: MIDIMessage)
+    protected onMidiChannelMessage(message: MIDIMessage): void
     {
+        return;
     }
 
-    protected onMidiSystemMessage(message: MIDIMessage)
+    protected onMidiSystemMessage(message: MIDIMessage): void
     {
+        return;
     }
 
-    protected onMidiSysExMessage(message: MIDIMessage)
+    protected onMidiSysExMessage(message: MIDIMessage): void
     {
+        return;
     }
 
-    protected onMidiState(event: WebMidi.MIDIConnectionEvent)
+    protected onMidiState(event: WebMidi.MIDIConnectionEvent): void
     {
         console.log("[MIDIDevice.onMidiState]", event);
     }
 
-    protected onMidiInputChanged(prev: WebMidi.MIDIInput, next: WebMidi.MIDIInput)
+    protected onMidiInputChanged(prev: WebMidi.MIDIInput, next: WebMidi.MIDIInput): void
     {
         console.log("[MIDIDevice.onMidiInputChanged]");
     }
 
-    protected onMidiOutputChanged(prev: WebMidi.MIDIOutput, next: WebMidi.MIDIOutput)
+    protected onMidiOutputChanged(prev: WebMidi.MIDIOutput, next: WebMidi.MIDIOutput): void
     {
         console.log("[MIDIDevice.onMidiOutputChanged]");
     }
