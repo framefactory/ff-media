@@ -111,6 +111,10 @@ export default class MIDIManager extends Publisher
 
     async initialize(options?: MIDIOptions): Promise<MIDIAccess>
     {
+        if (navigator["requestMIDIAccess"] === undefined) {
+            return Promise.reject("MIDI not supported");
+        }
+
         return navigator.requestMIDIAccess(options).then(midi => {
             this._midi = midi;
 

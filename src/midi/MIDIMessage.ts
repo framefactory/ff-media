@@ -11,7 +11,7 @@ import { MIDIController } from "./MIDIController";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export { MIDIStatus };
+export { MIDIStatus, MIDINote, MIDIController };
 
 export enum MIDIMessageType
 {
@@ -131,8 +131,6 @@ export default class MIDIMessage
 
     static status(firstByte: number): MIDIStatus
     {
-        const mask = 0xf0;
-
         if ((firstByte & 0xf0) === 0xf0) {
             return firstByte;
         }
