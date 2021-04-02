@@ -17,7 +17,7 @@ import MIDIMessage from "@ff/media/midi/MIDIMessage";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export { MIDIInput, MIDIOutput, MIDIMessageEvent, MIDIConnectionEvent };
+export { MIDIInput, MIDIOutput, MIDIMessageEvent, MIDIConnectionEvent, MIDIAccess };
 
 export default class MIDIManager extends Publisher
 {
