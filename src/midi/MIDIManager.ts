@@ -13,7 +13,7 @@ import MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 import MIDIConnectionEvent = WebMidi.MIDIConnectionEvent;
 
 import Publisher from "@ff/core/Publisher";
-import MIDIMessage from "@ff/media/midi/MIDIMessage";
+import MIDIMessage from "./MIDIMessage";
 
 ////////////////////////////////////////////////////////////////////////////////
 

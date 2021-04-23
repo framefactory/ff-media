@@ -301,7 +301,8 @@ export default class MIDIMessage
 
                 case MIDIStatus.ControlChange: {
                     const ccType = b1 < 120 ? "ControlChange" : "ChannelMode";
-                    return `${ccType} (Ch. ${channel}, Number: ${b1} / ${MIDIController[b1]}, Value: ${b2})`;
+                    const ccName = MIDIController[b1];
+                    return `${ccType} (Ch. ${channel}, Number: ${b1}${ccName ? ` / ${ccName}` : ""}, Value: ${b2})`;
                 }
                 case MIDIStatus.ProgramChange:
                     return `${name} (Ch. ${channel}, Number: ${b1})`;
