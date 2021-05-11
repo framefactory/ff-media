@@ -207,7 +207,7 @@ export default class MIDIMessage
         return MIDIMessage.status(this.data[0]);
     }
 
-    get name(): string
+    get statusName(): string
     {
         return MIDIStatus[this.status];
     }
