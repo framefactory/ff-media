@@ -14,7 +14,8 @@ import MIDIChannelState from "./MIDIChannelState";
 
 export default class MIDIDeviceState extends Provider
 {
-    channels: MIDIChannelState[] = [];
+    readonly channels: MIDIChannelState[] = [];
+    readonly omni: MIDIChannelState;
 
     constructor()
     {
@@ -23,6 +24,8 @@ export default class MIDIDeviceState extends Provider
         for (let i = 0; i < 16; ++i) {
             this.channels.push(new MIDIChannelState(i));
         }
+
+        this.omni = new MIDIChannelState(-1);
     }
 
     update(message: MIDIMessage): void
@@ -30,6 +33,7 @@ export default class MIDIDeviceState extends Provider
         switch(message.type) {
             case MIDIMessageType.Channel:
                 this.channels[message.channel].update(message);
+                this.omni.update(message);
                 break;
         }
 
@@ -41,5 +45,7 @@ export default class MIDIDeviceState extends Provider
         for (let i = 0; i < 16; ++i) {
             this.channels[i].reset();
         }
+
+        this.omni.reset();
     }
 }

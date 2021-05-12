@@ -13,7 +13,6 @@ import MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 import MIDIConnectionEvent = WebMidi.MIDIConnectionEvent;
 
 import Publisher from "@ff/core/Publisher";
-import MIDIMessage from "./MIDIMessage";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -162,7 +161,7 @@ export default class MIDIManager extends Publisher
                 localStorage.setItem("MIDIManager.activeInput", port.id);
             }
 
-            console.log("[MIDIManager] Active Input: %s", MIDIManager.portDescription(port));
+            console.log("[MIDIManager] Active input: %s", MIDIManager.portDescription(port));
         }
     }
 
@@ -173,7 +172,7 @@ export default class MIDIManager extends Publisher
         const outputs = this._midi.outputs;
         let id = typeof output === "string" ? output : output.id;
         let port = outputs.get(id);
-
+        
         if (!port) {
             port = Array.from(outputs).filter(arr => arr[1].name === output).map(arr => arr[1])[0];
             id = port ? port.id : "";
@@ -192,7 +191,7 @@ export default class MIDIManager extends Publisher
                 localStorage.setItem("MIDIManager.activeOutput", port.id);
             }
 
-            console.log("[MIDIManager] Active Output: %s", MIDIManager.portDescription(port));
+            console.log("[MIDIManager] Active output: %s", MIDIManager.portDescription(port));
         }
     }
 
