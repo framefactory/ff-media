@@ -17,15 +17,22 @@ export default class MIDIDeviceState extends Provider
     readonly channels: MIDIChannelState[] = [];
     readonly omni: MIDIChannelState;
 
+    onMessage: (message: MIDIMessage) => void = null;
+
     constructor()
     {
         super();
 
         for (let i = 0; i < 16; ++i) {
-            this.channels.push(new MIDIChannelState(i));
+            this.channels.push(new MIDIChannelState(i, this));
         }
 
         this.omni = new MIDIChannelState(-1);
+    }
+
+    getChannelState(index: number)
+    {
+        return index >= 0 && index < 16 ? this.channels[index] : this.omni;
     }
 
     update(message: MIDIMessage): void
@@ -47,5 +54,6 @@ export default class MIDIDeviceState extends Provider
         }
 
         this.omni.reset();
+        this.updated();
     }
 }

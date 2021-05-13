@@ -7,8 +7,8 @@
 
 export enum MIDIStatus
 {
-    NoteOff         = 0b10000000,
-    NoteOn          = 0b10010000,
+    NoteOff         = 0b10000000, // 0x80, 128
+    NoteOn          = 0b10010000, // 0x90, 144
     KeyPressure     = 0b10100000,
     ControlChange   = 0b10110000,
     ProgramChange   = 0b11000000,

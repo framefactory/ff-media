@@ -13,9 +13,11 @@ import MIDIMessageEvent = WebMidi.MIDIMessageEvent;
 import MIDIConnectionEvent = WebMidi.MIDIConnectionEvent;
 
 import Publisher from "@ff/core/Publisher";
+import MIDIMessage from "./MIDIMessage";
 
 ////////////////////////////////////////////////////////////////////////////////
 
+export { MIDIMessage };
 export { MIDIInput, MIDIOutput, MIDIMessageEvent, MIDIConnectionEvent, MIDIAccess };
 
 export default class MIDIManager extends Publisher
@@ -29,7 +31,7 @@ export default class MIDIManager extends Publisher
     {
         return `${port.name} (Manufacturer: ${port.manufacturer}, ID: ${port.id})`;
     }
-
+    
     private _midi: MIDIAccess = null;
     private _activeInputId = "";
     private _activeOutputId = "";
@@ -40,10 +42,16 @@ export default class MIDIManager extends Publisher
     constructor()
     {
         super();
-        this.addEvents("message", "state");
+        
+        this.addEvents(
+            "message-event", 
+            "message", 
+            "connection-event", 
+            "connection"
+        );
 
-        this.onMessage = this.onMessage.bind(this);
-        this.onState = this.onState.bind(this);
+        this._onMessageEvent = this._onMessageEvent.bind(this);
+        this._onConnectionEvent = this._onConnectionEvent.bind(this);
     }
 
     get ready(): boolean {
@@ -149,13 +157,13 @@ export default class MIDIManager extends Publisher
         if (port) {
             const oldPort = this.activeInput;
             if (oldPort) {
-                oldPort.removeEventListener("midimessage", this.onMessage);
-                oldPort.removeEventListener("statechange", this.onState);
+                oldPort.removeEventListener("midimessage", this._onMessageEvent);
+                oldPort.removeEventListener("statechange", this._onConnectionEvent);
             }
 
             this._activeInputId = id;
-            port.addEventListener("midimessage", this.onMessage);
-            port.addEventListener("statechange", this.onState);
+            port.addEventListener("midimessage", this._onMessageEvent);
+            port.addEventListener("statechange", this._onConnectionEvent);
 
             if (localStorage) {
                 localStorage.setItem("MIDIManager.activeInput", port.id);
@@ -181,11 +189,11 @@ export default class MIDIManager extends Publisher
         if (port) {
             const oldPort = this.activeOutput;
             if (oldPort) {
-                oldPort.removeEventListener("statechange", this.onState);
+                oldPort.removeEventListener("statechange", this.onConnectionEvent);
             }
 
             this._activeOutputId = id;
-            port.addEventListener("statechange", this.onState);
+            port.addEventListener("statechange", this.onConnectionEvent);
 
             if (localStorage) {
                 localStorage.setItem("MIDIManager.activeOutput", port.id);
@@ -210,14 +218,33 @@ export default class MIDIManager extends Publisher
         }
     }
 
-    protected onMessage(event: MIDIMessageEvent)
+    protected onMessageEvent(event: MIDIMessageEvent)
     {
-        //console.log(new MIDIMessage(event).toString());
-        this.emit("message", event);
+        const message = new MIDIMessage(event);
+        this.emit("message", message);
     }
 
-    protected onState(event: MIDIConnectionEvent)
+    protected onConnectionEvent(event: MIDIConnectionEvent)
     {
-        this.emit("state", event);
+        console.log("[MIDIManager] state event:", event);
+        //this.emit("connection", event);
+    }
+
+    private _onMessageEvent(event: MIDIMessageEvent)
+    {
+        // convert Note On with velocity 0 to Note Off
+        const data = event.data;
+        if (data.length > 2 && (data[0] & 0xf0) === 0x90 && data[2] === 0) {
+            data[0] = 0x80 | (data[0] & 0x0f);
+        }
+
+        this.emit("message-event", event);
+        this.onMessageEvent(event);
+    }
+
+    private _onConnectionEvent(event: MIDIConnectionEvent)
+    {
+        this.emit("connection-event", event);
+        this.onConnectionEvent(event);
     }
 }

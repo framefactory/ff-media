@@ -242,7 +242,7 @@ export default class MIDIMessage
         return this.data[1];
     }
 
-    get pitch(): number
+    get pitchBend(): number
     {
         return this.data[2] * 0x80 + this.data[1] - 0x2000;
     }
@@ -311,7 +311,7 @@ export default class MIDIMessage
                     return `${name} (Ch. ${channel}, Pressure: ${b1})`;
 
                 case MIDIStatus.PitchBend:
-                    return `${name} (Ch. ${channel}, Value: ${this.pitch}, LSB: ${b1}, MSB: ${b2})`;
+                    return `${name} (Ch. ${channel}, Value: ${this.pitchBend}, LSB: ${b1}, MSB: ${b2})`;
 
                 default:
                     return `${name} (Ch. ${channel}, Values: ${b1}, ${b2})`;
