@@ -294,7 +294,7 @@ export default class MIDIMessage
             switch(status) {
                 case MIDIStatus.NoteOn:
                 case MIDIStatus.NoteOff:
-                    return `${name} (Ch. ${channel}, Note: ${MIDINote[b1]}, Velocity: ${b2})`;
+                    return `${name} (Ch. ${channel}, Note: ${MIDINote[b1]} (${b1}), Velocity: ${b2})`;
 
                 case MIDIStatus.KeyPressure:
                     return `${name} (Ch. ${channel}, Note: ${MIDINote[b1]}, Pressure: ${b2})`;
