@@ -59,7 +59,7 @@ export class MIDIMessage
         return new Uint8Array(message);
     }
 
-    static rpn(channel: number, param: number, value: number)
+    static rpn3(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
 
@@ -69,17 +69,34 @@ export class MIDIMessage
             param >> 7,
             status,
             MIDIController.RPN_LSB,
-            param & 0x0f,
+            param & 0x7f,
+            status,
+            MIDIController.DataEntry_MSB,
+            value,
+        ]);
+    }
+
+    static rpn4(channel: number, param: number, value: number)
+    {
+        const status = MIDIStatus.ControlChange | channel;
+
+        return new Uint8Array([
+            status,
+            MIDIController.RPN_MSB,
+            param >> 7,
+            status,
+            MIDIController.RPN_LSB,
+            param & 0x7f,
             status,
             MIDIController.DataEntry_MSB,
             value >> 7,
             status,
             MIDIController.DataEntry_LSB,
-            value & 0x0f
+            value & 0x7f,
         ]);
     }
 
-    static nrpn(channel: number, param: number, value: number)
+    static nrpn3(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
 
@@ -89,13 +106,30 @@ export class MIDIMessage
             param >> 7,
             status,
             MIDIController.NRPN_LSB,
-            param & 0x0f,
+            param & 0x7f,
+            status,
+            MIDIController.DataEntry_MSB,
+            value,
+        ]);
+    }
+
+    static nrpn4(channel: number, param: number, value: number)
+    {
+        const status = MIDIStatus.ControlChange | channel;
+
+        return new Uint8Array([
+            status,
+            MIDIController.NRPN_MSB,
+            param >> 7,
+            status,
+            MIDIController.NRPN_LSB,
+            param & 0x7f,
             status,
             MIDIController.DataEntry_MSB,
             value >> 7,
             status,
             MIDIController.DataEntry_LSB,
-            value & 0x0f
+            value & 0x7f,
         ]);
     }
 

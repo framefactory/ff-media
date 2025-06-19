@@ -6,13 +6,17 @@
  */
 
 import { Publisher } from "@ffweb/core/Publisher.js";
-import { MIDIMessage } from "./MIDIMessage.js";
+import { MIDIMessage, MIDIMessageType } from "./MIDIMessage.js";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export { MIDIMessage };
+export { MIDIMessage, MIDIMessageType };
 
 
+/**
+ * Manages MIDI ports and connections. Acts as an event publisher for
+ * connection events and MIDI messages.
+ */
 export class MIDIManager extends Publisher
 {
     static portName(port: MIDIInput | MIDIOutput)
@@ -29,22 +33,18 @@ export class MIDIManager extends Publisher
     private _activeInputId = "";
     private _activeOutputId = "";
 
-    /**
-     * Manages Web Midi ports and connections.
-     */
+
     constructor()
     {
         super();
         
         this.addEvents(
-            "message-event", 
             "message", 
-            "connection-event", 
             "connection"
         );
 
-        this._onMessageEvent = this._onMessageEvent.bind(this);
-        this._onConnectionEvent = this._onConnectionEvent.bind(this);
+        this.onMessageEvent = this.onMessageEvent.bind(this);
+        this.onConnectionEvent = this.onConnectionEvent.bind(this);
     }
 
     get ready(): boolean {
@@ -54,65 +54,105 @@ export class MIDIManager extends Publisher
         return this._midi;
     }
 
+    /** Gets the currently active MIDI input port. */
     get activeInput(): MIDIInput {
         this.ensureInitialized();
         return this._midi.inputs.get(this._activeInputId);
     }
+    /** Makes the given input port the active MIDI input. */
     set activeInput(input: MIDIInput) {
         this.setActiveInput(input);
     }
 
+    /** Gets the currently active MIDI output port. */
     get activeOutput(): MIDIOutput {
         this.ensureInitialized();
         return this._midi.outputs.get(this._activeOutputId);
     }
+    /** Makes the given output port the active MIDI output. */
     set activeOutput(output: MIDIOutput) {
         this.setActiveOutput(output);
     }
 
+    /** Gets the id of the currently active MIDI input port. */
     get activeInputId(): string {
         return this._activeInputId;
     }
+    /** Makes the output port with the given id the active MIDI output. */
     set activeInputId(id: string) {
         this.setActiveInput(id);
     }
 
+    /** Gets the id of the currently active MIDI output port. */
     get activeOutputId(): string {
         return this._activeOutputId;
     }
+    /** Makes the input port with the given id the active MIDI input. */
     set activeOutputId(id: string) {
         this.setActiveOutput(id);
     }
 
+    /** Returns the list of all available MIDI input ports. */
     get inputs(): MIDIInput[] {
         this.ensureInitialized();
         return Array.from(this._midi.inputs, arr => arr[1]);
     }
+    /** Returns the list of all available MIDI output ports. */
     get outputs(): MIDIOutput[] {
         this.ensureInitialized();
         return Array.from(this._midi.outputs, arr => arr[1]);
     }
 
+    /** Returns the names of all available MIDI input ports. */
     get inputNames(): string[] {
         this.ensureInitialized();
         return Array.from(this._midi.inputs, arr => MIDIManager.portName(arr[1]));
     }
+    /** Returns the names of all available MIDI output ports. */
     get outputNames(): string[] {
         this.ensureInitialized();
         return Array.from(this._midi.outputs, arr => MIDIManager.portName(arr[1]));
     }
 
+    /** Returns true if there are any MIDI input ports available. */
     get hasInputs(): boolean {
         return this._midi.inputs.size > 0;
     }
+    /** Returns true if there are any MIDI output ports available. */
     get hasOutputs(): boolean {
         return this._midi.outputs.size > 0;
+    }
+
+    /**
+     * Returns the MIDI input port whose name contains or id matches
+     * the given query string. String comparison is case-insensitive.
+     */
+    findInput(query: string): MIDIInput | null
+    {
+        query = query.toLowerCase();
+        const inputs = this.inputs;
+        const port = Array.from(inputs).find(
+            port => port.name.toLowerCase().includes(query) || port.id === query);
+        return port || null;
+    }
+
+    /**
+     * Returns the MIDI output port whose name contains or id matches
+     * the given query string. String comparison is case-insensitive.
+     */
+    findOutput(query: string): MIDIOutput | null
+    {
+        query = query.toLowerCase();
+        const outputs = this.outputs;
+        const port = Array.from(outputs).find(
+            port => port.name.toLowerCase().includes(query) || port.id === query);
+        return port || null;
     }
 
     async initialize(options?: MIDIOptions): Promise<MIDIAccess>
     {
         if (navigator["requestMIDIAccess"] === undefined) {
-            return Promise.reject("MIDI not supported");
+            throw new Error("MIDI not supported");
         }
 
         return navigator.requestMIDIAccess(options).then(midi => {
@@ -134,6 +174,14 @@ export class MIDIManager extends Publisher
         });
     }
 
+    dumpPorts()
+    {
+        console.log("MIDI Inputs");
+        this.inputs.forEach((port, index) => console.log("#%s %s", index, MIDIManager.portDescription(port)));
+        console.log("MIDI Outputs");
+        this.outputs.forEach((port, index) => console.log("#%s %s", index, MIDIManager.portDescription(port)));
+    }
+
     protected setActiveInput(input: MIDIInput | string)
     {
         this.ensureInitialized();
@@ -150,13 +198,13 @@ export class MIDIManager extends Publisher
         if (port) {
             const oldPort = this.activeInput;
             if (oldPort) {
-                oldPort.removeEventListener("midimessage", this._onMessageEvent);
-                oldPort.removeEventListener("statechange", this._onConnectionEvent);
+                oldPort.removeEventListener("midimessage", this.onMessageEvent);
+                oldPort.removeEventListener("statechange", this.onConnectionEvent);
             }
 
             this._activeInputId = id;
-            port.addEventListener("midimessage", this._onMessageEvent);
-            port.addEventListener("statechange", this._onConnectionEvent);
+            port.addEventListener("midimessage", this.onMessageEvent);
+            port.addEventListener("statechange", this.onConnectionEvent);
 
             if (localStorage) {
                 localStorage.setItem("MIDIManager.activeInput", port.id);
@@ -181,6 +229,7 @@ export class MIDIManager extends Publisher
 
         if (port) {
             const oldPort = this.activeOutput;
+
             if (oldPort) {
                 oldPort.removeEventListener("statechange", this.onConnectionEvent);
             }
@@ -196,14 +245,6 @@ export class MIDIManager extends Publisher
         }
     }
 
-    dumpPorts()
-    {
-        console.log("MIDI Inputs");
-        this.inputs.forEach((port, index) => console.log("#%s %s", index, MIDIManager.portDescription(port)));
-        console.log("MIDI Outputs");
-        this.outputs.forEach((port, index) => console.log("#%s %s", index, MIDIManager.portDescription(port)));
-    }
-
     protected ensureInitialized()
     {
         if (!this._midi) {
@@ -211,19 +252,7 @@ export class MIDIManager extends Publisher
         }
     }
 
-    protected onMessageEvent(event: MIDIMessageEvent)
-    {
-        const message = new MIDIMessage(event);
-        this.emit("message", message);
-    }
-
-    protected onConnectionEvent(event: MIDIConnectionEvent)
-    {
-        console.log("[MIDIManager] state event:", event);
-        //this.emit("connection", event);
-    }
-
-    private _onMessageEvent(event: MIDIMessageEvent)
+    private onMessageEvent(event: MIDIMessageEvent)
     {
         // convert Note On with velocity 0 to Note Off
         const data = event.data;
@@ -231,13 +260,12 @@ export class MIDIManager extends Publisher
             data[0] = 0x80 | (data[0] & 0x0f);
         }
 
-        this.emit("message-event", event);
-        this.onMessageEvent(event);
+        const message = new MIDIMessage(event);
+        this.emit("message", message);
     }
 
-    private _onConnectionEvent(event: MIDIConnectionEvent)
+    private onConnectionEvent(event: MIDIConnectionEvent)
     {
-        this.emit("connection-event", event);
-        this.onConnectionEvent(event);
+        this.emit("connection", event);
     }
 }
