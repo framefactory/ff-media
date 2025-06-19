@@ -1,11 +1,11 @@
 /**
  * FF Typescript Foundation Library
- * Copyright 2021 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2025 Ralph Wiedemeier, Frame Factory GmbH
  *
  * License: MIT
  */
 
-import MIDIMessage, { MIDIMessageType, MIDIStatus } from "./MIDIMessage";
+import { MIDIMessage, MIDIMessageType, MIDIStatus } from "./MIDIMessage.js";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -16,14 +16,14 @@ export default class MIDIDevice
 {
     private _deviceId = 0;
     private _manufacturerId: number | number[] = 0;
-    private _midiInput: WebMidi.MIDIInput = null;
-    private _midiOutput: WebMidi.MIDIOutput = null;
+    private _midiInput: MIDIInput = null;
+    private _midiOutput: MIDIOutput = null;
 
     constructor(
         manufacturerId: number | number[],
         deviceId?: number,
-        midiInput?: WebMidi.MIDIInput,
-        midiOutput?: WebMidi.MIDIOutput
+        midiInput?: MIDIInput,
+        midiOutput?: MIDIOutput
     )
     {
         this.onMidiMessage = this.onMidiMessage.bind(this);
@@ -51,7 +51,7 @@ export default class MIDIDevice
         return this._deviceId;
     }
 
-    set input(input: WebMidi.MIDIInput) {
+    set input(input: MIDIInput) {
         const prev = this._midiInput;
         if (prev) {
             prev.removeEventListener("midimessage", this.onMidiMessage);
@@ -67,17 +67,17 @@ export default class MIDIDevice
 
         this.onMidiInputChanged(prev, input);
     }
-    get input(): WebMidi.MIDIInput {
+    get input(): MIDIInput {
         return this._midiInput;
     }
 
-    set output(output: WebMidi.MIDIOutput) {
+    set output(output: MIDIOutput) {
         const prev = this._midiOutput;
         this._midiOutput = output;
 
         this.onMidiOutputChanged(prev, output);
     }
-    get output(): WebMidi.MIDIOutput {
+    get output(): MIDIOutput {
         return this._midiOutput;
     }
 
@@ -103,7 +103,7 @@ export default class MIDIDevice
         return `MIDIDevice, ID: ${this._deviceId}, Input: ${inpName}, Output: ${outName}`;
     }
 
-    protected onMidiMessage(event: WebMidi.MIDIMessageEvent): void
+    protected onMidiMessage(event: MIDIMessageEvent): void
     {
         const message = new MIDIMessage(event);
         switch(message.type) {
@@ -131,17 +131,17 @@ export default class MIDIDevice
         return;
     }
 
-    protected onMidiState(event: WebMidi.MIDIConnectionEvent): void
+    protected onMidiState(event: MIDIConnectionEvent): void
     {
         console.log("[MIDIDevice.onMidiState]", event);
     }
 
-    protected onMidiInputChanged(prev: WebMidi.MIDIInput, next: WebMidi.MIDIInput): void
+    protected onMidiInputChanged(prev: MIDIInput, next: MIDIInput): void
     {
         console.log("[MIDIDevice.onMidiInputChanged]");
     }
 
-    protected onMidiOutputChanged(prev: WebMidi.MIDIOutput, next: WebMidi.MIDIOutput): void
+    protected onMidiOutputChanged(prev: MIDIOutput, next: MIDIOutput): void
     {
         console.log("[MIDIDevice.onMidiOutputChanged]");
     }

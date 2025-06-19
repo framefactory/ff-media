@@ -1,18 +1,18 @@
 /**
  * FF Typescript Foundation Library
- * Copyright 2021 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2025 Ralph Wiedemeier, Frame Factory GmbH
  *
  * License: MIT
  */
 
-import { Provider } from "@ff/core/reactive";
+import { Provider } from "@ffweb/core/reactive.js";
 
-import MIDIMessage, { MIDIMessageType } from "./MIDIMessage";
-import MIDIChannelState from "./MIDIChannelState";
+import { MIDIMessage, MIDIMessageType } from "./MIDIMessage.js";
+import { MIDIChannelState } from "./MIDIChannelState.js";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export default class MIDIDeviceState extends Provider
+export class MIDIDeviceState extends Provider
 {
     readonly channels: MIDIChannelState[] = [];
     readonly omni: MIDIChannelState;

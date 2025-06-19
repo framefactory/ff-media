@@ -1,13 +1,13 @@
 /**
  * FF Typescript Foundation Library
- * Copyright 2021 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2025 Ralph Wiedemeier, Frame Factory GmbH
  *
  * License: MIT
  */
 
-import { MIDIStatus } from "./MIDIStatus";
-import { MIDINote } from "./MIDINote";
-import { MIDIController } from "./MIDIController";
+import { MIDIStatus } from "./MIDIStatus.js";
+import { MIDINote } from "./MIDINote.js";
+import { MIDIController } from "./MIDIController.js";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -20,7 +20,7 @@ export enum MIDIMessageType
     SysEx,
 }
 
-export default class MIDIMessage
+export class MIDIMessage
 {
     static noteOn(channel: number, note: MIDINote, velocity: number): Uint8Array {
         return new Uint8Array([ MIDIStatus.NoteOn | channel, note, velocity ]);
@@ -183,9 +183,9 @@ export default class MIDIMessage
     public readonly data: Uint8Array;
     public readonly time: number;
 
-    constructor(event: WebMidi.MIDIMessageEvent);
+    constructor(event: MIDIMessageEvent);
     constructor(data: Uint8Array, time: number);
-    constructor(dataOrEvent: WebMidi.MIDIMessageEvent | Uint8Array, time?: number)
+    constructor(dataOrEvent: MIDIMessageEvent | Uint8Array, time?: number)
     {
         if (dataOrEvent instanceof Uint8Array) {
             this.data = dataOrEvent;
@@ -193,7 +193,7 @@ export default class MIDIMessage
         }
         else {
             this.data = dataOrEvent.data;
-            this.time = dataOrEvent.receivedTime;
+            this.time = dataOrEvent.timeStamp || Date.now();
         }
     }
 

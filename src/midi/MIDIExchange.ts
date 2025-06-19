@@ -1,11 +1,11 @@
 /**
  * FF Typescript Foundation Library
- * Copyright 2021 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2025 Ralph Wiedemeier, Frame Factory GmbH
  *
  * License: MIT
  */
 
-import MIDIDevice, { MIDIMessage } from "./MIDIDevice";
+import MIDIDevice, { MIDIMessage } from "./MIDIDevice.js";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -27,8 +27,8 @@ export interface IRequiredResponse
 export default class MIDIExchange<MIDIDeviceType extends MIDIDevice = MIDIDevice>
 {
     public readonly device: MIDIDeviceType;
-    public readonly input: WebMidi.MIDIInput;
-    public readonly output: WebMidi.MIDIOutput;
+    public readonly input: MIDIInput;
+    public readonly output: MIDIOutput;
 
     private _isRunning = false;
     private _isCompleted = false;
@@ -157,7 +157,7 @@ export default class MIDIExchange<MIDIDeviceType extends MIDIDevice = MIDIDevice
         return responses;
     }
 
-    protected onMidiMessage(event: WebMidi.MIDIMessageEvent)
+    protected onMidiMessage(event: MIDIMessageEvent)
     {
         const data = event.data;
         const required = this._requiredResponses;

@@ -3,14 +3,14 @@
 
     "compilerOptions": {
         "target": "ES2021",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
+        "module": "CommonJS",
+        "moduleResolution": "Node",
 
         "composite": true,
         "declaration": true,
         "declarationMap": true,
         "declarationDir": "./build/types",
-        "outDir": "./build/esm",
+        "outDir": "./build/cjs",
         "rootDir": "./src",
 
         "baseUrl": "..",
@@ -25,6 +25,6 @@
         "node_modules",
     ],
     "references": [
-        { "path": "../core/tsconfig.json" }
+        { "path": "../core/tsconfig.cjs.json" }
     ]
 }

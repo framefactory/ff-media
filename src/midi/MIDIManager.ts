@@ -1,26 +1,19 @@
 /**
  * FF Typescript Foundation Library
- * Copyright 2021 Ralph Wiedemeier, Frame Factory GmbH
+ * Copyright 2025 Ralph Wiedemeier, Frame Factory GmbH
  *
  * License: MIT
  */
 
-import MIDIAccess = WebMidi.MIDIAccess;
-import MIDIOptions = WebMidi.MIDIOptions;
-import MIDIInput = WebMidi.MIDIInput;
-import MIDIOutput = WebMidi.MIDIOutput;
-import MIDIMessageEvent = WebMidi.MIDIMessageEvent;
-import MIDIConnectionEvent = WebMidi.MIDIConnectionEvent;
-
-import Publisher from "@ff/core/Publisher";
-import MIDIMessage from "./MIDIMessage";
+import { Publisher } from "@ffweb/core/Publisher.js";
+import { MIDIMessage } from "./MIDIMessage.js";
 
 ////////////////////////////////////////////////////////////////////////////////
 
 export { MIDIMessage };
-export { MIDIInput, MIDIOutput, MIDIMessageEvent, MIDIConnectionEvent, MIDIAccess };
 
-export default class MIDIManager extends Publisher
+
+export class MIDIManager extends Publisher
 {
     static portName(port: MIDIInput | MIDIOutput)
     {
