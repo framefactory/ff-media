@@ -59,74 +59,74 @@ export class MIDIMessage
         return new Uint8Array(message);
     }
 
-    static rpn3(channel: number, param: number, value: number)
+    static rpn7(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
 
         return new Uint8Array([
             status,
             MIDIController.RPN_MSB,
-            param >> 7,
+            (param >> 7) & 0x7f,
             status,
             MIDIController.RPN_LSB,
             param & 0x7f,
             status,
             MIDIController.DataEntry_MSB,
-            value,
+            value & 0x7f,
         ]);
     }
 
-    static rpn4(channel: number, param: number, value: number)
+    static rpn14(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
 
         return new Uint8Array([
             status,
             MIDIController.RPN_MSB,
-            param >> 7,
+            (param >> 7) & 0x7f,
             status,
             MIDIController.RPN_LSB,
             param & 0x7f,
             status,
             MIDIController.DataEntry_MSB,
-            value >> 7,
+            (value >> 7) & 0x7f,
             status,
             MIDIController.DataEntry_LSB,
             value & 0x7f,
         ]);
     }
 
-    static nrpn3(channel: number, param: number, value: number)
+    static nrpn7(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
 
         return new Uint8Array([
             status,
             MIDIController.NRPN_MSB,
-            param >> 7,
+            (param >> 7) & 0x7f,
             status,
             MIDIController.NRPN_LSB,
             param & 0x7f,
             status,
             MIDIController.DataEntry_MSB,
-            value,
+            value & 0x7f,
         ]);
     }
 
-    static nrpn4(channel: number, param: number, value: number)
+    static nrpn14(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
 
         return new Uint8Array([
             status,
             MIDIController.NRPN_MSB,
-            param >> 7,
+            (param >> 7) & 0x7f,
             status,
             MIDIController.NRPN_LSB,
             param & 0x7f,
             status,
             MIDIController.DataEntry_MSB,
-            value >> 7,
+            (value >> 7) & 0x7f,
             status,
             MIDIController.DataEntry_LSB,
             value & 0x7f,
