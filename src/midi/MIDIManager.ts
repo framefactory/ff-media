@@ -210,7 +210,7 @@ export class MIDIManager extends Publisher
                 localStorage.setItem("MIDIManager.activeInput", port.id);
             }
 
-            console.log("[MIDIManager] Active input: %s", MIDIManager.portDescription(port));
+            console.debug("[MIDIManager] Active input: %s", MIDIManager.portDescription(port));
         }
     }
 
@@ -241,7 +241,7 @@ export class MIDIManager extends Publisher
                 localStorage.setItem("MIDIManager.activeOutput", port.id);
             }
 
-            console.log("[MIDIManager] Active output: %s", MIDIManager.portDescription(port));
+            console.debug("[MIDIManager] Active output: %s", MIDIManager.portDescription(port));
         }
     }
 
