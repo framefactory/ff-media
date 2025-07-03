@@ -13,12 +13,22 @@ import { MIDIMessage, MIDIMessageType } from "./MIDIMessage.js";
 export { MIDIMessage, MIDIMessageType };
 
 
-/**
- * Manages MIDI ports and connections. Acts as an event publisher for
- * connection events and MIDI messages.
- */
 export class MIDIManager extends Publisher
 {
+    static isWebMidiSupported(): boolean
+    {
+        return navigator["requestMIDIAccess"] !== undefined;
+    }
+
+    static async requestMidi(options?: MIDIOptions): Promise<MIDIAccess>
+    {
+        if (!this.isWebMidiSupported()) {
+            throw new Error("WebMIDI not supported by browser");
+        }
+
+        return navigator.requestMIDIAccess(options);
+    }
+
     static portName(port: MIDIInput | MIDIOutput)
     {
         return `${port.name} (${port.manufacturer})`;
@@ -28,89 +38,49 @@ export class MIDIManager extends Publisher
     {
         return `${port.name} (Manufacturer: ${port.manufacturer}, ID: ${port.id})`;
     }
-    
+
+
     private _midi: MIDIAccess = null;
-    private _activeInputId = "";
-    private _activeOutputId = "";
+    private _activeIns: Map<string, MIDIInput> = new Map();
+    private _activeOuts: Map<string, MIDIOutput> = new Map();
 
 
     constructor()
     {
         super();
-        
-        this.addEvents(
-            "message", 
-            "connection"
-        );
+        this.addEvents("message", "connection");
 
         this.onMessageEvent = this.onMessageEvent.bind(this);
         this.onConnectionEvent = this.onConnectionEvent.bind(this);
     }
 
-    get ready(): boolean {
-        return !!this._midi;
-    }
-    get midi(): MIDIAccess {
-        return this._midi;
-    }
-
-    /** Gets the currently active MIDI input port. */
-    get activeInput(): MIDIInput {
-        this.ensureInitialized();
-        return this._midi.inputs.get(this._activeInputId);
-    }
-    /** Makes the given input port the active MIDI input. */
-    set activeInput(input: MIDIInput) {
-        this.setActiveInput(input);
-    }
-
-    /** Gets the currently active MIDI output port. */
-    get activeOutput(): MIDIOutput {
-        this.ensureInitialized();
-        return this._midi.outputs.get(this._activeOutputId);
-    }
-    /** Makes the given output port the active MIDI output. */
-    set activeOutput(output: MIDIOutput) {
-        this.setActiveOutput(output);
-    }
-
-    /** Gets the id of the currently active MIDI input port. */
-    get activeInputId(): string {
-        return this._activeInputId;
-    }
-    /** Makes the output port with the given id the active MIDI output. */
-    set activeInputId(id: string) {
-        this.setActiveInput(id);
-    }
-
-    /** Gets the id of the currently active MIDI output port. */
-    get activeOutputId(): string {
-        return this._activeOutputId;
-    }
-    /** Makes the input port with the given id the active MIDI input. */
-    set activeOutputId(id: string) {
-        this.setActiveOutput(id);
+    /**
+     * Initializes WebMIDI. Throws if the service is unavailable or if the
+     * page hasn't been given permission to access it.
+     * @param options A midi options object. 
+     */
+    async initialize(options?: MIDIOptions)
+    {
+        options = options || { sysex: true };
+        this._midi = await MIDIManager.requestMidi(options);
+        this._midi.addEventListener("statechange", this.onConnectionEvent);
     }
 
     /** Returns the list of all available MIDI input ports. */
     get inputs(): MIDIInput[] {
-        this.ensureInitialized();
         return Array.from(this._midi.inputs, arr => arr[1]);
     }
     /** Returns the list of all available MIDI output ports. */
     get outputs(): MIDIOutput[] {
-        this.ensureInitialized();
         return Array.from(this._midi.outputs, arr => arr[1]);
     }
 
     /** Returns the names of all available MIDI input ports. */
     get inputNames(): string[] {
-        this.ensureInitialized();
         return Array.from(this._midi.inputs, arr => MIDIManager.portName(arr[1]));
     }
     /** Returns the names of all available MIDI output ports. */
     get outputNames(): string[] {
-        this.ensureInitialized();
         return Array.from(this._midi.outputs, arr => MIDIManager.portName(arr[1]));
     }
 
@@ -121,6 +91,15 @@ export class MIDIManager extends Publisher
     /** Returns true if there are any MIDI output ports available. */
     get hasOutputs(): boolean {
         return this._midi.outputs.size > 0;
+    }
+
+    /** Returns an array of active/open MIDI input ports. */
+    get openInputs(): MIDIInput[] {
+        return Array.from(this._activeIns.values());
+    }
+    /** Returns an array of active/open MIDI output ports. */
+    get openOutputs(): MIDIOutput[] {
+        return Array.from(this._activeOuts.values());
     }
 
     /**
@@ -149,122 +128,90 @@ export class MIDIManager extends Publisher
         return port || null;
     }
 
-    async initialize(options?: MIDIOptions): Promise<MIDIAccess>
+    /**
+     * Opens the given MIDI input for communication.
+     * @param input The input port to be opened.
+     * @returns The open port if successful, null otherwise.
+     */
+    async openInput(input: MIDIInput): Promise<MIDIInput|null>
     {
-        if (navigator["requestMIDIAccess"] === undefined) {
-            throw new Error("MIDI not supported");
+        try {
+            const port = await input.open() as MIDIInput;
+            if (!this._activeIns.has(port.id)) {
+                this._activeIns.set(port.id, port);
+                port.addEventListener("midimessage", this.onMessageEvent);
+            }
+            return port;
         }
-
-        return navigator.requestMIDIAccess(options).then(midi => {
-            this._midi = midi;
-
-            if (localStorage) {
-                const inId = localStorage.getItem("MIDIManager.activeInput");
-                if (inId) {
-                    this.setActiveInput(inId);
-                }
-
-                const outId = localStorage.getItem("MIDIManager.activeOutput");
-                if (outId) {
-                    this.setActiveOutput(outId);
-                }
-            }
-
-            return midi;
-        });
-    }
-
-    dumpPorts()
-    {
-        console.log("MIDI Inputs");
-        this.inputs.forEach((port, index) => console.log("#%s %s", index, MIDIManager.portDescription(port)));
-        console.log("MIDI Outputs");
-        this.outputs.forEach((port, index) => console.log("#%s %s", index, MIDIManager.portDescription(port)));
-    }
-
-    protected setActiveInput(input: MIDIInput | string)
-    {
-        this.ensureInitialized();
-
-        const inputs = this._midi.inputs;
-        let id = typeof input === "string" ? input : input.id;
-        let port = inputs.get(id);
-
-        if (!port) {
-            port = Array.from(inputs).filter(arr => arr[1].name === input).map(arr => arr[1])[0];
-            id = port ? port.id : "";
-        }
-
-        if (port) {
-            const oldPort = this.activeInput;
-            if (oldPort) {
-                oldPort.removeEventListener("midimessage", this.onMessageEvent);
-                oldPort.removeEventListener("statechange", this.onConnectionEvent);
-            }
-
-            this._activeInputId = id;
-            port.addEventListener("midimessage", this.onMessageEvent);
-            port.addEventListener("statechange", this.onConnectionEvent);
-
-            if (localStorage) {
-                localStorage.setItem("MIDIManager.activeInput", port.id);
-            }
-
-            console.debug("[MIDIManager] Active input: %s", MIDIManager.portDescription(port));
+        catch (e) {
+            console.warn(`[MIDIManager] failed to activate MIDI input: ${MIDIManager.portName(input)}`);
+            return null;
         }
     }
 
-    protected setActiveOutput(output: MIDIOutput | string)
+    /**
+     * Closes the given MIDI input for communication.
+     * @param input The input port to be closed.
+     */
+    async closeInput(input: MIDIInput): Promise<void>
     {
-        this.ensureInitialized();
-
-        const outputs = this._midi.outputs;
-        let id = typeof output === "string" ? output : output.id;
-        let port = outputs.get(id);
-        
-        if (!port) {
-            port = Array.from(outputs).filter(arr => arr[1].name === output).map(arr => arr[1])[0];
-            id = port ? port.id : "";
+        try {
+            if (this._activeIns.has(input.id)) {
+                this.removeEventListener("midimessage", this.onMessageEvent);
+                this._activeIns.delete(input.id);
+                await input.close();
+            }
         }
-
-        if (port) {
-            const oldPort = this.activeOutput;
-
-            if (oldPort) {
-                oldPort.removeEventListener("statechange", this.onConnectionEvent);
-            }
-
-            this._activeOutputId = id;
-            port.addEventListener("statechange", this.onConnectionEvent);
-
-            if (localStorage) {
-                localStorage.setItem("MIDIManager.activeOutput", port.id);
-            }
-
-            console.debug("[MIDIManager] Active output: %s", MIDIManager.portDescription(port));
+        catch (e) {
+            // do nothing
         }
     }
 
-    protected ensureInitialized()
+    /**
+     * Opens the given MIDI output for communication.
+     * @param output The output port to be opened.
+     * @returns The open port if successful, null otherwise.
+     */
+    async openOutput(output: MIDIOutput): Promise<MIDIOutput|null>
     {
-        if (!this._midi) {
-            throw new Error("MIDI not available, forgot to initialize manager?");
+        try {
+            const port = await output.open() as MIDIOutput;
+            if (!this._activeOuts.has(port.id)) {
+                this._activeOuts.set(port.id, port);
+            }
+            return port;
+        }
+        catch (e) {
+            console.warn(`[MIDIManager] failed to activate MIDI output: ${MIDIManager.portName(output)}`);
+            return null;
         }
     }
 
-    private onMessageEvent(event: MIDIMessageEvent)
+    /**
+     * Closes the given MIDI output for communication.
+     * @param output The output port to be closed.
+     */
+    async closeOutput(output: MIDIOutput): Promise<void>
     {
-        // convert Note On with velocity 0 to Note Off
-        const data = event.data;
-        if (data.length > 2 && (data[0] & 0xf0) === 0x90 && data[2] === 0) {
-            data[0] = 0x80 | (data[0] & 0x0f);
+        try {
+            if (this._activeOuts.has(output.id)) {
+                this._activeOuts.delete(output.id);
+                await output.close();
+            }
         }
+        catch (e) {
+            // do nothing
+        }
+    }
 
+    
+    protected onMessageEvent(event: MIDIMessageEvent)
+    {
         const message = new MIDIMessage(event);
         this.emit("message", message);
     }
 
-    private onConnectionEvent(event: MIDIConnectionEvent)
+    protected onConnectionEvent(event: MIDIConnectionEvent)
     {
         this.emit("connection", event);
     }

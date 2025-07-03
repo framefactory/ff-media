@@ -22,6 +22,12 @@ export enum MIDIMessageType
 
 export class MIDIMessage
 {
+    static convertZeroVelToNoteOff: boolean = true;
+
+    static fromArray(...bytes: Array<number>): Uint8Array {
+        return new Uint8Array(bytes);
+    }
+
     static noteOn(channel: number, note: MIDINote, velocity: number): Uint8Array {
         return new Uint8Array([ MIDIStatus.NoteOn | channel, note, velocity ]);
     }
@@ -147,10 +153,6 @@ export class MIDIMessage
         ]);
     }
 
-    static create(...bytes): Uint8Array {
-        return new Uint8Array(bytes);
-    }
-
     static type(firstByte: number): MIDIMessageType
     {
         if (firstByte === 0xf0) {
@@ -202,7 +204,7 @@ export class MIDIMessage
         if (deviceId !== undefined && deviceId !== 0x7f && data[i] !== deviceId) {
             return false;
         }
-        // data (0xff matches any value)
+        // header (0xff matches any value)
         if (header) {
             for (let j = 0; j < header.length; ++j) {
                 if (header[j] !== 0xff && header[j] !== data[i + j + 1]) {
@@ -218,16 +220,23 @@ export class MIDIMessage
     public readonly time: number;
 
     constructor(event: MIDIMessageEvent);
-    constructor(data: Uint8Array, time: number);
+    constructor(data: Uint8Array, time?: number);
     constructor(dataOrEvent: MIDIMessageEvent | Uint8Array, time?: number)
     {
         if (dataOrEvent instanceof Uint8Array) {
             this.data = dataOrEvent;
-            this.time = time;
+            this.time = time || Date.now();
         }
         else {
             this.data = dataOrEvent.data;
             this.time = dataOrEvent.timeStamp || Date.now();
+        }
+
+        if (MIDIMessage.convertZeroVelToNoteOff) {
+            const data = this.data;
+            if (data.length === 3 && (data[0] & 0xf0) === 0x90 && data[2] === 0) {
+                data[0] = 0x80 | (data[0] & 0x0f);
+            }
         }
     }
 
