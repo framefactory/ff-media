@@ -259,6 +259,13 @@ export class MIDIMessage
     {
         return this.data[0] & 0x0f;
     }
+    set channel(channel: number)
+    {
+        const data = this.data;
+        if (data.length > 0) {
+            data[0] = (data[0] & 0xf0) | (channel & 0x0f);
+        }
+    }
 
     get note(): MIDINote
     {
