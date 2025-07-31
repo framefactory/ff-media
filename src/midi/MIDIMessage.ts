@@ -255,6 +255,7 @@ export class MIDIMessage
         return MIDIStatus[this.status];
     }
 
+    /** Gets or sets the channel number (zero-based) of a channel message. */
     get channel(): number
     {
         return this.data[0] & 0x0f;
@@ -267,31 +268,37 @@ export class MIDIMessage
         }
     }
 
+    /** Returns the note number of a note message. */
     get note(): MIDINote
     {
         return this.data[1];
     }
 
+    /** Returns the velocity of a note message. */
     get velocity(): number
     {
         return this.data[2];
     }
 
+    /** Returns the controller type of a controller message. */
     get controller(): MIDIController
     {
         return this.data[1];
     }
 
+    /** Returns the value of a controller message. */
     get value(): number
     {
         return this.data[2];
     }
 
+    /** Returns the program number of a program message. */
     get program(): number
     {
         return this.data[1];
     }
 
+    /** Returns the pitch bend amount in the range -8192 to +8191. */
     get pitchBend(): number
     {
         return this.data[2] * 0x80 + this.data[1] - 0x2000;
