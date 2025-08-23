@@ -78,7 +78,7 @@ export class MIDIConnector
                 if (!message) {
                     return; // message was filtered out
                 }
-                data = message.data;
+                data = Uint8Array.from(message.data);
                 timeStamp = message.time;
             }
 
