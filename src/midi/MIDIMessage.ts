@@ -28,22 +28,47 @@ export class MIDIMessage
         return new Uint8Array(bytes);
     }
 
+    /** Creates a MIDIMessage object containing a Note On message. */
+    static makeNoteOn(channel: number, note: MIDINote, velocity: number): MIDIMessage {
+        return new MIDIMessage(MIDIMessage.noteOn(channel, note, velocity));
+    }
+
+    /** Creates a MIDIMessage object containing a Note Off message. */
+    static makeNoteOff(channel: number, note: MIDINote, velocity = 0): MIDIMessage {
+        return new MIDIMessage(MIDIMessage.noteOff(channel, note, velocity));
+    }
+
+    /** Creates a MIDIMessage object containing a Control Change message. */
+    static makeControlChange(channel: number, controller: number, value: number): MIDIMessage {
+        return new MIDIMessage(MIDIMessage.controlChange(channel, controller, value));
+    }
+
+    /** Creates a MIDIMessage object containing a Program Change message. */
+    static makeProgramChange(channel: number, program: number): MIDIMessage {
+        return new MIDIMessage(MIDIMessage.programChange(channel, program));
+    }
+
+    /** Creates a Uint8Array containing a Note On message for the given channel, note and velocity. */
     static noteOn(channel: number, note: MIDINote, velocity: number): Uint8Array {
         return new Uint8Array([ MIDIStatus.NoteOn | channel, note, velocity ]);
     }
 
+    /** Creates a Uint8Array containing a Note Off message for the given channel, note and velocity. */
     static noteOff(channel: number, note: MIDINote, velocity = 0): Uint8Array {
         return new Uint8Array([ MIDIStatus.NoteOff | channel, note, velocity ]);
     }
 
+    /** Creates a Uint8Array containing a Control Change message for the given channel, controller number and value. */
     static controlChange(channel: number, controller: number, value: number): Uint8Array {
         return new Uint8Array([ MIDIStatus.ControlChange | channel, controller, value ]);
     }
 
+    /** Creates a Uint8Array containing a Program Change message for the given channel and program number. */
     static programChange(channel: number, program: number): Uint8Array {
         return new Uint8Array([ MIDIStatus.ProgramChange | channel, program ]);
     }
 
+    /** Creates a System Exclusive message with the given parameters. */
     static universalNRTSysEx(deviceId: number, sid1: number, sid2?: number, data?: number[]): Uint8Array {
         let message = [ MIDIStatus.SystemExclusive, 0x7e, deviceId, sid1 ];
         if (sid2 !== undefined) {
@@ -56,6 +81,7 @@ export class MIDIMessage
         return new Uint8Array(message);
     }
 
+    /** Creates a System Exclusive message with the given parameters. */
     static universalRTSysEx(deviceId: number, sid1: number, sid2: number, data?: number[]): Uint8Array {
         let message = [ MIDIStatus.SystemExclusive, 0x7e, deviceId, sid1, sid2 ];
         if (data !== undefined) {
@@ -65,6 +91,8 @@ export class MIDIMessage
         return new Uint8Array(message);
     }
 
+    /** Creates a RPN CC message sequence for the given channel,
+     *  parameter number and value (7-bit resolution). */
     static rpn7(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
@@ -82,6 +110,8 @@ export class MIDIMessage
         ]);
     }
 
+    /** Creates a RPN CC message sequence for the given channel,
+     *  parameter number and value (14-bit resolution). */
     static rpn14(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
@@ -102,6 +132,8 @@ export class MIDIMessage
         ]);
     }
 
+    /** Creates a NRPN CC message sequence for the given channel,
+     *  parameter number and value (7-bit resolution). */
     static nrpn7(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
@@ -119,6 +151,8 @@ export class MIDIMessage
         ]);
     }
 
+    /** Creates a NRPN CC message sequence for the given channel,
+     *  parameter number and value (14-bit resolution). */
     static nrpn14(channel: number, param: number, value: number)
     {
         const status = MIDIStatus.ControlChange | channel;
@@ -153,6 +187,7 @@ export class MIDIMessage
         ]);
     }
 
+    /** Determines the message type from the first byte. */
     static type(firstByte: number): MIDIMessageType
     {
         if (firstByte === 0xf0) {
@@ -165,6 +200,7 @@ export class MIDIMessage
         return MIDIMessageType.Channel;
     }
 
+    /** Determines the MIDI status from the first byte. */
     static status(firstByte: number): MIDIStatus
     {
         if ((firstByte & 0xf0) === 0xf0) {
@@ -174,6 +210,13 @@ export class MIDIMessage
         return firstByte & 0xf0;
     }
 
+    /** Validates that the given data contains a SysEx message for the given
+     *  manufacturer id, device id and header bytes.
+     *  Manufacturer id can be a single byte (0x01 to 0x7d) or an array of three bytes
+     *  for extended ids (0x00, xx, yy).
+     *  Device id can be omitted or set to 0x7f to match any device.
+     *  Header can be omitted or contain bytes to match. Use 0xff to match any value.
+     */
     static validateSysEx(
         data: number[] | Uint8Array,
         id: number | number[],
@@ -219,6 +262,7 @@ export class MIDIMessage
     public readonly data: Uint8Array;
     public readonly time: number;
 
+    /** Creates a MIDIMessage object from a MIDIMessageEvent or from raw data bytes. */
     constructor(event: MIDIMessageEvent);
     constructor(data: Uint8Array, time?: number);
     constructor(dataOrEvent: MIDIMessageEvent | Uint8Array, time?: number)
@@ -240,16 +284,19 @@ export class MIDIMessage
         }
     }
 
+    /** Returns the message type as defined in the MIDIMessageType enum. */
     get type(): MIDIMessageType
     {
         return MIDIMessage.type(this.data[0]);
     }
 
+    /** Returns the MIDI status as defined in the MIDIStatus enum. */
     get status(): MIDIStatus
     {
         return MIDIMessage.status(this.data[0]);
     }
 
+    /** Returns the name of the MIDI status as defined in the MIDIStatus enum. */
     get statusName(): string
     {
         return MIDIStatus[this.status];
