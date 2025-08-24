@@ -46,6 +46,9 @@
         "clean": "rm -rf ./build",
         "test": "rm -rf ./build/test && tsc -b test && mocha -c --ui tdd build/test/index.js"
     },
+    "dependencies": {
+        "fft.js": "^4.0.4"
+    },
     "devDependencies": {
         "@types/chai": "^5.0.1",
         "@types/mocha": "^10.0.10",
